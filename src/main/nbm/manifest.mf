@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module-Name: Help
+OpenIDE-Module-Display-Category: ADITO / Documentation
+OpenIDE-Module-Short-Description: Output of all JScript methods of a class and corresponding description
+OpenIDE-Module-Long-Description: Output of all JScript methods of a class and corresponding description
