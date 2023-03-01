@@ -1,0 +1,52 @@
+{
+    "tags": {
+        "allowUnknownTags": ["category"]
+    },
+    "source": {
+        "include": ["./node_modules/@aditosoftware/jdito-types/dist"],
+        "includePattern": "\\.(ts|js)$"
+    },
+    "plugins": [
+        "plugins/markdown",
+        "jsdoc-mermaid",
+        "node_modules/better-docs/category",
+        "node_modules/better-docs/typescript"
+    ],
+    "opts": {
+        "encoding": "utf8",
+        "destination": "docs/documentations/",
+        "recurse": true,
+        "verbose": true,
+        "template": "./node_modules/clean-jsdoc-theme",
+        "theme_opts": {
+            "default_theme": "dark",
+            "search": true,
+            "displayModuleHeader": true,
+            "title": "Documentation",
+            "base_url": "localhost:8080/",
+            "homepageTitle": "ADITO xRM & Core Documentation",
+            "meta": [
+                {
+                    "name": "author",
+                    "content": "ADITO Academy"
+                },
+                {
+                    "name": "description",
+                    "content": "Documentation for the ADITO xRM and ADITO Core"
+                }
+            ],
+            "menu": [
+                {
+                    "title": "ADITO Software GmbH",
+                    "link": "https://www.adito.de/",
+                    "target": "_blank"
+                }
+            ],
+            "sections": ["Classes","Modules","Externals","Events","Namespaces","Mixins","Tutorials","Global"]
+        }
+    },
+    "markdown": {
+        "hardwrap": false,
+        "idInHeadings": true
+    }
+}
