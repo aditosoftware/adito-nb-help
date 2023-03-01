@@ -19,7 +19,7 @@ jarFile="de-adito-aditoweb-nbm-help.jar"
 jarPath="target/nbm/netbeans/extra/modules/"
 # the path to the folder in which the jar should be moved. Example of the git plugin:
 # jarTargetPath="../0.0/workingdir/nbp_userdir/modules/"
-jarTargetPath="../designer/workingdir/nbp_userdir/modules/"
+jarTargetPath="C:/Users/f.adler/AppData/Roaming/.aditodesigner/2022.2.3/modules/"
 # name of the folder that contains the gathered dependencies of the plugin. These have to be moved as well. Example of the git plugin:
 # folderName="de.adito.git.adito-nbm-git/"
 folderName="de.adito.aditoweb.nbm.help"
@@ -38,7 +38,7 @@ jarFileTargetPath=$jarTargetPath$jarFile
 folderNamePath=$folderPath$folderName
 folderTargetPath=$jarTargetPath$targetPathFolder
 
-mvn clean install -T 1C -P adito.m2
+mvn clean install -DskipTests -T 1C -P adito.m2
 
 cp $jarFilePath $jarFileTargetPath
 # cp -r $folderNamePath $folderTargetPath
