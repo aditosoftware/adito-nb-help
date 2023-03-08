@@ -120,26 +120,15 @@ public class HelpActionShowDocumentation extends NodeAction {
                 executeInstall(nodeJsEnv, executor, handle, "http-server", 9);
                 executeInstall(nodeJsEnv, executor, handle, "jsdoc-plugin-typescript", 11);
 
-
                 handle.progress("Rendering JSDoc Documentation", 13);
-                //get the prefix for the .aditodesigner or custom nodejs path for the next execution
-                String designerNodePath = executor.executeSync(nodeJsEnv, INodeJSExecBase.packageManager(), -1, "config", "get", "prefix").split("\n")[1];
 
                 //copy the file included in the .jar to the .aditodesigner/version/help/project folder and change the content to fit each project
-                String jsDocPath = moveAndOverwriteJSDocContent(projectPath, port, projectName, designerNodePath.replaceAll("\\\\", "/"));
+                String jsDocPath = moveAndOverwriteJSDocContent(projectPath, port, projectName, nodeJsEnv);
 
-
-
-                _LOGGER.info(designerNodePath);
-                _LOGGER.info(INodeJSExecBase.module("jsdoc", "").getBasePath() + "");
-                _LOGGER.info(INodeJSExecBase.module("jsdoc", "").getWindowsExt() + "");
-                _LOGGER.info(INodeJSExecBase.module("jsdoc", "").toString() + "");
-
-                executeJSDoc(nodeJsEnv, executor, jsDocPath, designerNodePath);
-                executeHttpServer(handle, nodeJsEnv, executor, jsDocPath, designerNodePath, port);
+                executeJSDoc(nodeJsEnv, executor, jsDocPath);
+                executeHttpServer(handle, nodeJsEnv, executor, jsDocPath, port);
                 Desktop.getDesktop().browse(new URI("http://localhost:" + port));
 
-                //used NotificationDisplayer.getDefault().notify because the standard one didn't work
                 INotificationFacade.INSTANCE.notify(
                         "Local HTTP-Server",
                         "localhost:" + port,
@@ -148,7 +137,7 @@ public class HelpActionShowDocumentation extends NodeAction {
                             try {
                                 Desktop.getDesktop().browse(new URI("http://localhost:" + port));
                             } catch (Exception ex) {
-                                throw new RuntimeException(ex);
+                                INotificationFacade.INSTANCE.error(ex);
                             }
                         }
                 );
@@ -189,15 +178,27 @@ public class HelpActionShowDocumentation extends NodeAction {
     }
 
     /**
+     *
+     * @param pNodeEnv nodejs env
+     * @param pModule module name
+     * @param pInnerPath innerpath of module
+     * @return path
+     */
+    protected String getAbsolutePathOfModule(INodeJSEnvironment pNodeEnv, String pModule, String pInnerPath) {
+        return pNodeEnv.resolveExecBase(INodeJSExecBase.module(pModule, pInnerPath.isEmpty() ? "": pInnerPath)).getAbsolutePath();
+    }
+
+    /**
      * Check if the JSDoc JSON file exists, move it to the cache folder and replace the
      *
      * @param pPath original path of the jsdoc.json
      * @param pPort random port for the webserver
      * @return String of the path where the jsdoc.json is stored
-     * @throws IOException yes
+     * @throws IOException yes, it might
      */
     @VisibleForTesting
-    protected String moveAndOverwriteJSDocContent(@NotNull String pPath, int pPort, String pProjectName, String pDesignerNodePath) throws IOException {
+    protected String moveAndOverwriteJSDocContent(@NotNull String pPath, int pPort, String pProjectName, INodeJSEnvironment pNodeEnv) throws IOException {
+        //create cache directory with a subpath with the name of the project
         Path newPath = Places.getCacheSubdirectory("help/" + pProjectName).toPath();
 
         Gson gson = new Gson();
@@ -215,11 +216,11 @@ public class HelpActionShowDocumentation extends NodeAction {
 
         // Change the value of the "plugins" key
         JsonArray pluginsArray = rootObject.getAsJsonArray("plugins");
-        pluginsArray.set(2, gson.toJsonTree(pDesignerNodePath + "/node_modules/better-docs/category"));
-        pluginsArray.set(3, gson.toJsonTree(pDesignerNodePath + "/node_modules/better-docs/typescript"));
+        pluginsArray.set(2, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv, "better-docs","category.js")));
+        pluginsArray.set(3, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv,"better-docs", "typescript")));
 
         // Change the value of the "opts" key
-        rootObject.getAsJsonObject("opts").addProperty("template", pDesignerNodePath + "/node_modules/clean-jsdoc-theme");
+        rootObject.getAsJsonObject("opts").addProperty("template", getAbsolutePathOfModule(pNodeEnv,"clean-jsdoc-theme", ""));
         rootObject.getAsJsonObject("opts").addProperty("destination", newPath + "/docs/documentations/");
 
         // Change the value of the "theme_opts" key
@@ -231,6 +232,7 @@ public class HelpActionShowDocumentation extends NodeAction {
             jsonWriter.setIndent("    ");
             gson.toJson(rootObject, jsonWriter);
         }
+        //delete cache subdirectory on exit
         FileUtils.forceDeleteOnExit(Places.getCacheSubdirectory("help/" + pProjectName));
 
         //OpenProjects.getDefault().isProjectOpen(OpenProjects.getDefault().getMainProject());//PROPERTY_OPEN_PROJECTS.intern();
@@ -268,6 +270,16 @@ public class HelpActionShowDocumentation extends NodeAction {
             return false;
     }
 
+    /**
+     * checks if the currently installed jdito types are valid for this plugin
+     *
+     * @param pNodeJsEnvironment NodeJS environment
+     * @param pExecutor NodeJS Executor
+     * @return boolean if the jdito types are correct
+     * @throws IOException a
+     * @throws InterruptedException b
+     * @throws TimeoutException c
+     */
     @VisibleForTesting
     protected boolean checkProjectJDitoTypes(@NotNull INodeJSEnvironment pNodeJsEnvironment, @NotNull INodeJSExecutor pExecutor) throws IOException, InterruptedException, TimeoutException {
         // Execute npm list with --json to validate if the package is installed or not
@@ -282,21 +294,42 @@ public class HelpActionShowDocumentation extends NodeAction {
         return obj != null && obj.optString("version", "").startsWith("2023");
     }
 
+    /**
+     * executes the JSDoc command
+     *
+     * @param pNodeJsEnv NodeJS environment
+     * @param pNodeJsExecutor NodeJS Executor
+     * @param pJSDocPath path to jsdoc
+     * @throws IOException a
+     * @throws InterruptedException b
+     * @throws TimeoutException c
+     */
     @VisibleForTesting
-    protected void executeJSDoc(INodeJSEnvironment pNodeJsEnv, INodeJSExecutor pNodeJsExecutor, String pJSDocPath, String pDesignerNodePath) throws IOException, InterruptedException, TimeoutException {
+    protected void executeJSDoc(INodeJSEnvironment pNodeJsEnv, INodeJSExecutor pNodeJsExecutor, String pJSDocPath) throws IOException, InterruptedException, TimeoutException {
         //executing the jsdoc command to render the html files
-        _LOGGER.info(pNodeJsExecutor.executeSync(pNodeJsEnv, INodeJSExecBase.node(), -1, pDesignerNodePath + "/node_modules/jsdoc/jsdoc.js", "--configure", pJSDocPath + "/jsdoc.json", "--verbose"));
+        _LOGGER.info(pNodeJsExecutor.executeSync(pNodeJsEnv, INodeJSExecBase.node(), -1, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("jsdoc", "jsdoc.js")).getAbsolutePath(), "--configure", pJSDocPath + "/jsdoc.json", "--verbose"));
     }
 
     //ToDO: check if project is open and only one instance and close it if neccessary
     //TODO: SHowDocumentation should open if already running idk how but yes
     //OpenProjects fürs öffnen von Projekten
+
+    /**
+     * opens the http-server
+     *
+     * @param pHandle handle for progress
+     * @param pNodeJsEnv environment
+     * @param pNodeJsExecutor executor
+     * @param pJSDocPath path
+     * @param pPort port
+     * @throws IOException a
+     */
     @VisibleForTesting
-    protected void executeHttpServer(ProgressHandle pHandle, INodeJSEnvironment pNodeJsEnv, INodeJSExecutor pNodeJsExecutor, String pJSDocPath, String pDesignerNodePath, int pPort) throws IOException {
+    protected void executeHttpServer(ProgressHandle pHandle, INodeJSEnvironment pNodeJsEnv, INodeJSExecutor pNodeJsExecutor, String pJSDocPath, int pPort) throws IOException {
         pHandle.progress("Opening HTTP-Server", 16);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         //opening a local server to view the htmls with a random port
-        _LOGGER.info(String.valueOf(pNodeJsExecutor.executeAsync(pNodeJsEnv, INodeJSExecBase.node(), outputStream, null, null, pDesignerNodePath + "/node_modules/http-server/bin/http-server", pJSDocPath + "/docs/documentations", "-p", "" + pPort)));
+        _LOGGER.info(String.valueOf(pNodeJsExecutor.executeAsync(pNodeJsEnv, INodeJSExecBase.node(), outputStream, null, null, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("http-server", "bin/http-server")).getAbsolutePath(), pJSDocPath + "/docs/documentations", "-p", "" + pPort)));
     }
 
     /**

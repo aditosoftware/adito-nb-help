@@ -293,7 +293,7 @@ class HelpActionShowDocumentationTest {
     class ExecuteJSDoc {
         @BeforeEach
         void init() throws IOException, InterruptedException, TimeoutException {
-            doCallRealMethod().when(hasd).executeJSDoc(any(), any(), any(), any());
+            doCallRealMethod().when(hasd).executeJSDoc(any(), any(), any());
         }
 
         @Test
@@ -335,12 +335,12 @@ class HelpActionShowDocumentationTest {
     class ExecutorJSDoc {
         @BeforeEach
         void init() throws IOException, InterruptedException, TimeoutException {
-            doCallRealMethod().when(hasd).executeJSDoc(any(), any(), anyString(), any());
+            doCallRealMethod().when(hasd).executeJSDoc(any(), any(), anyString());
         }
         @Test
         void shouldReturnSomething() throws IOException, InterruptedException, TimeoutException {
             doReturn("ResultTest").when(executor).executeSync(eq(environment), any(), eq(-1L), eq(false), any());
-            assertDoesNotThrow(() -> hasd.executeJSDoc(environment, executor,  "", ""));
+            assertDoesNotThrow(() -> hasd.executeJSDoc(environment, executor, ""));
         }
     }
     @Nested
