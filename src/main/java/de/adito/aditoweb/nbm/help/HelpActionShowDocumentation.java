@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
  */
 @NbBundle.Messages("ACTION_showDocumentation_displayName=Show Documentation")
 @ActionID(category = "Help", id = "de.adito.aditoweb.nbm.help.HelpActionShowDocumentation")
-@ActionRegistration(displayName = "#ACTION_showDocumentation_displayName")
-@ActionReference(path = "Menu/Help", position = 1700)
+@ActionRegistration(displayName = "#ACTION_showDocumentation_displayName", iconBase = "de/adito/aditoweb/nbm/help/openBook.png")
+@ActionReference(path = "Menu/Help", position = 1450, separatorBefore = 1449)
 public class HelpActionShowDocumentation extends NodeAction {
     //define private static final _LOGGER to use it everywhere in this class
     @VisibleForTesting
@@ -69,6 +69,11 @@ public class HelpActionShowDocumentation extends NodeAction {
     }
 
     @Override
+    protected String iconResource() {
+        return "de/adito/aditoweb/nbm/help/openBook.png";
+    }
+
+    @Override
     protected boolean enable(Node[] nodes) {
         List<Project> projects = Arrays.stream(nodes)
                 .map(pNode -> IProjectQuery.getInstance().findProjects(pNode, IProjectQuery.ReturnType.MULTIPLE_TO_NULL))
@@ -86,7 +91,7 @@ public class HelpActionShowDocumentation extends NodeAction {
         INodeJSEnvironment provider = getNodeJSEnvironment(project);
 
         // Enable only if a single project is selected and NodeJS is installed
-        return (executor != null && provider != null);
+        return (executor != null);
     }
 
     @Override
@@ -167,10 +172,12 @@ public class HelpActionShowDocumentation extends NodeAction {
     @VisibleForTesting
     void executeInstall(@NotNull INodeJSEnvironment pNodeJsEnvironment, @NotNull INodeJSExecutor pExecutor, @Nullable ProgressHandle pHandle, @NotNull String pPackage, int pPackageNumber) {
         try {
-            pHandle.progress("verifying " + pPackage, pPackageNumber);
-            if (!verifyPackageInstallation(pNodeJsEnvironment, pExecutor, pPackage.replaceAll("/@.+/", ""))) {
-                pHandle.progress("installing " + pPackage, ++pPackageNumber);
-                _LOGGER.info(pExecutor.executeSync(pNodeJsEnvironment, INodeJSExecBase.packageManager(), -1, "i", pPackage, "-g"));
+            String stringPackage = pPackage.replaceAll("@.+", "");
+            pHandle.progress("verifying " + stringPackage, pPackageNumber);
+            if (!verifyPackageInstallation(pNodeJsEnvironment, pExecutor, stringPackage)) {
+                pHandle.progress("installing " + stringPackage, ++pPackageNumber);
+                String result = pExecutor.executeSync(pNodeJsEnvironment, INodeJSExecBase.packageManager(), -1, "i", stringPackage, "-g");
+                _LOGGER.info(result);
             }
         } catch (Exception e) {
             INotificationFacade.INSTANCE.error(e);
@@ -234,8 +241,6 @@ public class HelpActionShowDocumentation extends NodeAction {
         }
         //delete cache subdirectory on exit
         FileUtils.forceDeleteOnExit(Places.getCacheSubdirectory("help/" + pProjectName));
-
-        //OpenProjects.getDefault().isProjectOpen(OpenProjects.getDefault().getMainProject());//PROPERTY_OPEN_PROJECTS.intern();
 
         return newPath.toString().replaceAll("\\\\", "/");
     }
@@ -307,12 +312,9 @@ public class HelpActionShowDocumentation extends NodeAction {
     @VisibleForTesting
     protected void executeJSDoc(INodeJSEnvironment pNodeJsEnv, INodeJSExecutor pNodeJsExecutor, String pJSDocPath) throws IOException, InterruptedException, TimeoutException {
         //executing the jsdoc command to render the html files
-        _LOGGER.info(pNodeJsExecutor.executeSync(pNodeJsEnv, INodeJSExecBase.node(), -1, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("jsdoc", "jsdoc.js")).getAbsolutePath(), "--configure", pJSDocPath + "/jsdoc.json", "--verbose"));
+        String result = pNodeJsExecutor.executeSync(pNodeJsEnv, INodeJSExecBase.node(), -1, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("jsdoc", "jsdoc.js")).getAbsolutePath(), "--configure", pJSDocPath + "/jsdoc.json", "--verbose");
+        _LOGGER.info(result);
     }
-
-    //ToDO: check if project is open and only one instance and close it if neccessary
-    //TODO: SHowDocumentation should open if already running idk how but yes
-    //OpenProjects fürs öffnen von Projekten
 
     /**
      * opens the http-server
@@ -329,7 +331,8 @@ public class HelpActionShowDocumentation extends NodeAction {
         pHandle.progress("Opening HTTP-Server", 16);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         //opening a local server to view the htmls with a random port
-        _LOGGER.info(String.valueOf(pNodeJsExecutor.executeAsync(pNodeJsEnv, INodeJSExecBase.node(), outputStream, null, null, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("http-server", "bin/http-server")).getAbsolutePath(), pJSDocPath + "/docs/documentations", "-p", "" + pPort)));
+        String result = String.valueOf(pNodeJsExecutor.executeAsync(pNodeJsEnv, INodeJSExecBase.node(), outputStream, null, null, pNodeJsEnv.resolveExecBase(INodeJSExecBase.module("http-server", "bin/http-server")).getAbsolutePath(), pJSDocPath + "/docs/documentations", "-p", "" + pPort));
+        _LOGGER.info(result);
     }
 
     /**
@@ -346,10 +349,12 @@ public class HelpActionShowDocumentation extends NodeAction {
 
         if (!nodeJSProvider.isPresent()) return null;
 
-        Optional<INodeJSEnvironment> nodeJSEnvironment = nodeJSProvider.get().current().blockingFirst();
+        var nodeJSEnvironment = nodeJSProvider.get().current();
 
-        return nodeJSEnvironment.orElse(null);
-
+        if(Boolean.TRUE.equals(nodeJSEnvironment.isEmpty().blockingGet()))
+            return null;
+        else
+            return nodeJSEnvironment.blockingFirst().orElse(null);
     }
 
     /**
