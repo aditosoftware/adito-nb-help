@@ -20,7 +20,7 @@ import org.openide.util.*;
 import org.openide.util.actions.NodeAction;
 
 import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -49,6 +49,7 @@ public class HelpActionShowDocumentation extends NodeAction
 
   private static final String SUPPORTED_JDITO_VERSION = "2023";
   private static final String JDITO_TYPES = "@aditosoftware/jdito-types";
+  private static final String BETTER_DOCS = "better-docs";
 
   @Override
   protected boolean asynchronous()
@@ -135,7 +136,7 @@ public class HelpActionShowDocumentation extends NodeAction
       {
         //installing all needed modules via npm
         executeInstall(nodeJsEnv, executor, handle, "jsdoc-mermaid", 1);
-        executeInstall(nodeJsEnv, executor, handle, "better-docs", 3);
+        executeInstall(nodeJsEnv, executor, handle, BETTER_DOCS, 3);
         executeInstall(nodeJsEnv, executor, handle, "clean-jsdoc-theme", 5);
         executeInstall(nodeJsEnv, executor, handle, "jsdoc@3.6.11", 7);
         executeInstall(nodeJsEnv, executor, handle, "http-server", 9);
@@ -156,7 +157,7 @@ public class HelpActionShowDocumentation extends NodeAction
               "Local HTTP-Server",
               "localhost:" + port,
               false,
-              openBrowserWithURI(port.get())
+              new OpenBrowser(port.get())
           );
         }
         catch (Exception pE)
@@ -259,8 +260,8 @@ public class HelpActionShowDocumentation extends NodeAction
 
       // Change the value of the "plugins" key
       JsonArray pluginsArray = rootObject.getAsJsonArray("plugins");
-      pluginsArray.set(2, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv, "better-docs", "category.js")));
-      pluginsArray.set(3, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv, "better-docs", "typescript")));
+      pluginsArray.set(2, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv, BETTER_DOCS, "category.js")));
+      pluginsArray.set(3, gson.toJsonTree(getAbsolutePathOfModule(pNodeEnv, BETTER_DOCS, "typescript")));
 
       // Change the value of the "opts" key
       rootObject.getAsJsonObject("opts").addProperty("template", getAbsolutePathOfModule(pNodeEnv, "clean-jsdoc-theme", ""));
@@ -341,13 +342,10 @@ public class HelpActionShowDocumentation extends NodeAction
    * Opens the standard browser of the user and directs them to the local http-server with the given port
    *
    * @param pPort available port that has been selected by the serversocket
-   * @return null but as a actionlistener for the methods
    */
-  @Nullable
-  protected ActionListener openBrowserWithURI(int pPort) throws URISyntaxException, IOException
+  private void openBrowserWithURI(int pPort) throws URISyntaxException, IOException
   {
     Desktop.getDesktop().browse(new URI("http://localhost:" + pPort));
-    return null;
   }
 
   /**
@@ -432,5 +430,28 @@ public class HelpActionShowDocumentation extends NodeAction
       return null;
 
     return INodeJSExecutor.findInstance(pProject).orElse(null);
+  }
+
+  private class OpenBrowser implements ActionListener
+  {
+    private final int port;
+
+    private OpenBrowser(int pPort)
+    {
+      port = pPort;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+      try
+      {
+        openBrowserWithURI(port);
+      }
+      catch (Exception pException)
+      {
+        INotificationFacade.INSTANCE.error(pException);
+      }
+    }
   }
 }

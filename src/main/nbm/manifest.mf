@@ -3,4 +3,16 @@ AutoUpdate-Show-In-Client: true
 OpenIDE-Module-Name: Help
 OpenIDE-Module-Display-Category: ADITO / Documentation
 OpenIDE-Module-Short-Description: Output of all JScript methods of a class and corresponding description
-OpenIDE-Module-Long-Description: Output of all JScript methods of a class and corresponding description
+OpenIDE-Module-Long-Description: Output of all JScript methods of a class and corresponding description.
+  <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.0.1</p>
+  <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+  <ul>
+    <li>The plugin will no longer open 2 browsertabs after rendering</li>
+    <li>The dialog after rendering the JSDoc is clickable again and opens a tab in the browser</li>
+  </ul>
+  <p style="font-weight: bold;">v1.0.0</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>First Public Release for the Plugin Help</li>
+  </ul>
