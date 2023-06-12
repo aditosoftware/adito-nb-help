@@ -2,7 +2,7 @@ package de.adito.aditoweb.nbm.help;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.javascript.node.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,7 +52,7 @@ class HelpActionShowDocumentationTest
    *
    * @return Stream<Arguments> of boolean and class for each parameterized test
    */
-  @NotNull
+  @NonNull
   static Stream<Arguments> shouldReturnTrue()
   {
     return Stream.of(Arguments.of(true, mock(JSONObject.class)), Arguments.of(false, null));
@@ -63,7 +63,7 @@ class HelpActionShowDocumentationTest
    *
    * @return Stream<Arguments> of boolean and class for each parameterized test
    */
-  @NotNull
+  @NonNull
   static Stream<Arguments> shouldReturnProjectNodes()
   {
     Node nodeMock1 = mock(Node.class);
@@ -94,7 +94,7 @@ class HelpActionShowDocumentationTest
    *
    * @return Stream<Arguments> of boolean and string for each parameterized test
    */
-  @NotNull
+  @NonNull
   static Stream<Arguments> shouldReturnString()
   {
     return Stream.of(Arguments.of(true, "2023.0.0"), Arguments.of(false, ""));
@@ -105,7 +105,7 @@ class HelpActionShowDocumentationTest
    *
    * @return Stream<Arguments> of class and class for each parameterized test
    */
-  @NotNull
+  @NonNull
   static Stream<Arguments> shouldReturnINodeJSExecutor()
   {
     return Stream.of(Arguments.of(mock(INodeJSExecutor.class), mock(Project.class)), Arguments.of(null, null));
