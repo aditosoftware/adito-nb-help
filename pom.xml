@@ -131,14 +131,15 @@
       <scope>test</scope>
     </dependency>
 
-    <!--  NotNull/Nullable annotations  -->
+    <!-- Lombok for additional annotations -->
     <dependency>
-      <groupId>org.jetbrains</groupId>
-      <artifactId>annotations</artifactId>
-      <version>13.0</version>
+      <groupId>de.adito.aditoweb</groupId>
+      <artifactId>adito-lombok-extended</artifactId>
+      <version>1.0.0</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>

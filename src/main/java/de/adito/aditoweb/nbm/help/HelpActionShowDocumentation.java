@@ -8,8 +8,8 @@ import de.adito.aditoweb.nbm.nbide.nbaditointerface.javascript.node.*;
 import de.adito.notification.INotificationFacade;
 import io.reactivex.rxjava3.annotations.Nullable;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.project.Project;
@@ -196,7 +196,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @param pPackageNumber     workunit for the ProgressHandle
    */
   @VisibleForTesting
-  void executeInstall(@NotNull INodeJSEnvironment pNodeJsEnvironment, @NotNull INodeJSExecutor pExecutor, @Nullable ProgressHandle pHandle, @NotNull String pPackage, int pPackageNumber)
+  void executeInstall(@NonNull INodeJSEnvironment pNodeJsEnvironment, @NonNull INodeJSExecutor pExecutor, @Nullable ProgressHandle pHandle, @NonNull String pPackage, int pPackageNumber)
   {
     try
     {
@@ -223,7 +223,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @param pInnerPath inner path of module
    * @return the absolute path
    */
-  protected String getAbsolutePathOfModule(@NotNull INodeJSEnvironment pNodeEnv, @NotNull String pModule, @NotNull String pInnerPath)
+  protected String getAbsolutePathOfModule(@NonNull INodeJSEnvironment pNodeEnv, @NonNull String pModule, @NonNull String pInnerPath)
   {
     return pNodeEnv.resolveExecBase(INodeJSExecBase.module(pModule, pInnerPath.isEmpty() ? "" : pInnerPath)).getAbsolutePath();
   }
@@ -237,8 +237,8 @@ public class HelpActionShowDocumentation extends NodeAction
    * @throws IOException if no resources can be found
    */
   @VisibleForTesting
-  @NotNull
-  protected String moveAndOverwriteJSDocContent(@NotNull String pPath, int pPort, @NotNull String pProjectName, @NotNull INodeJSEnvironment pNodeEnv) throws IOException
+  @NonNull
+  protected String moveAndOverwriteJSDocContent(@NonNull String pPath, int pPort, @NonNull String pProjectName, @NonNull INodeJSEnvironment pNodeEnv) throws IOException
   {
     //create cache directory with a subpath with the name of the project
     Path newPath = Places.getCacheSubdirectory("help/" + pProjectName).toPath();
@@ -294,7 +294,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @return boolean depending if the dependency exists
    */
   @VisibleForTesting
-  protected boolean verifyPackageInstallation(@NotNull INodeJSEnvironment pNodeJsEnvironment, @NotNull INodeJSExecutor pExecutor, @NotNull String pPackage) throws IOException, InterruptedException, TimeoutException
+  protected boolean verifyPackageInstallation(@NonNull INodeJSEnvironment pNodeJsEnvironment, @NonNull INodeJSExecutor pExecutor, @NonNull String pPackage) throws IOException, InterruptedException, TimeoutException
   {
     //execute npm list with --json to validate if the package is installed or not
     String result = pExecutor.executeSync(pNodeJsEnvironment, INodeJSExecBase.packageManager(), -1, false, "list", pPackage, "-g", "--json");
@@ -325,7 +325,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @throws TimeoutException     if the timeout killed the process
    */
   @VisibleForTesting
-  protected boolean checkProjectJDitoTypes(@NotNull INodeJSEnvironment pNodeJsEnvironment, @NotNull INodeJSExecutor pExecutor) throws IOException, InterruptedException, TimeoutException
+  protected boolean checkProjectJDitoTypes(@NonNull INodeJSEnvironment pNodeJsEnvironment, @NonNull INodeJSExecutor pExecutor) throws IOException, InterruptedException, TimeoutException
   {
     // Execute npm list with --json to validate if the package is installed or not
     String result = pExecutor.executeSync(pNodeJsEnvironment, INodeJSExecBase.packageManager(), -1, false, "list", JDITO_TYPES, "--json");
@@ -359,7 +359,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @throws TimeoutException     if the timeout killed the process
    */
   @VisibleForTesting
-  protected void executeJSDoc(@NotNull INodeJSEnvironment pNodeJsEnv, @NotNull INodeJSExecutor pNodeJsExecutor, @NotNull String pJSDocPath) throws IOException, InterruptedException, TimeoutException
+  protected void executeJSDoc(@NonNull INodeJSEnvironment pNodeJsEnv, @NonNull INodeJSExecutor pNodeJsExecutor, @NonNull String pJSDocPath) throws IOException, InterruptedException, TimeoutException
   {
     //executing the jsdoc command to render the html files
     String result = pNodeJsExecutor.executeSync(pNodeJsEnv, INodeJSExecBase.node(), -1,
@@ -378,7 +378,7 @@ public class HelpActionShowDocumentation extends NodeAction
    * @throws IOException if an error occurred
    */
   @VisibleForTesting
-  protected void executeHttpServer(@NotNull ProgressHandle pHandle, @NotNull INodeJSEnvironment pNodeJsEnv, @NotNull INodeJSExecutor pNodeJsExecutor, @NotNull String pJSDocPath, int pPort) throws IOException
+  protected void executeHttpServer(@NonNull ProgressHandle pHandle, @NonNull INodeJSEnvironment pNodeJsEnv, @NonNull INodeJSExecutor pNodeJsExecutor, @NonNull String pJSDocPath, int pPort) throws IOException
   {
     pHandle.progress("Opening HTTP-Server", 16);
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
